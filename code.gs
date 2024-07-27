@@ -22,8 +22,8 @@ function main() {
 
   // Uncomment and set these dates in YYYY-MM-DD format to fetch data over a range of dates.
   /*
-  var startDate = new Date("2024-04-01");
-  var endDate = new Date("2024-04-10");
+  var startDate = new Date("2024-05-01");
+  var endDate = new Date("2024-06-26");
   */
 
   // Comment the string below if you want to fetch data over a range of dates.
@@ -31,9 +31,11 @@ function main() {
 
   // Read entry page filters from Google Sheets column (A is 0)
   const entryPageFilter = getEntryPageFromSheet("Pillar Management", 0);
+  console.log(entryPageFilter);
 
   // Read all pillar pages Google Sheets column (A is 0)
   const pillarPages = getDataFromColumn("Pillar Management", 2);
+  console.log(pillarPages);
 
   /**
    * Loop through each date in the specified range
@@ -70,10 +72,11 @@ function getEntryPageFromSheet(sheetName, column) {
 
   // Assuming the first row is the header
   const paths = data.slice(1) // Skip the header
-    .map((row) => row[column]) // Extract paths from the first column
+    .map((row) => row[column]) // Extract paths from the specified column
     .filter((path) => path && path.trim() !== ""); // Keep only non-blank, non-empty paths
 
-  const filter = paths.map((path) => `==${path}**`).join("|"); // Create the filter
+  // Create the filter with '==' at the start and then join paths with '**|' (ensure no '==' in each path)
+  const filter = `==${paths.map((path) => `${path}**`).join("|")}`;
 
   return filter;
 }
@@ -114,8 +117,6 @@ function fetchAndInsertDailyData(date, entryPageFilter) {
   const url = `https://plausible.io/api/v1/stats/timeseries?site_id=${siteId}&interval=date&period=day&date=${date}&metrics=visits,visitors,pageviews,bounce_rate,visit_duration&filters=visit:source${encodeURIComponent(
     sourceFilter
   )}visit:entry_page${encodeURIComponent(entryPageFilter)}`;
-
-  console.log(url);
 
   const response = fetchAndParseJson(url);
   if (response) {
